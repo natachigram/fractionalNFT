@@ -2,9 +2,8 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract FractionalContract is ERC1155, Ownable {
+contract FractionalContract is ERC1155 {
     uint256 public _tokenIds;
 
     uint256 public platformFee = 1; // 0.1%
@@ -32,15 +31,11 @@ contract FractionalContract is ERC1155, Ownable {
     );
     event Minted(uint256 tokenId, string uri);
 
-    constructor(string memory uri) {
-        _setURI(uri);
+    constructor(string memory uri) ERC1155(uri) {
+        // Initialize your contract with a base URI
     }
 
-    // function setURI(string memory newURI) external onlyOwner {
-    //     _setURI(newURI);
-    // }
-
-    function mintNFT(string memory tokenURI) external onlyOwner {
+    function mintNFT(string memory tokenURI) external {
         _tokenIds++;
         uint256 tokenId = _tokenIds;
         _mint(msg.sender, tokenId, 1, "");
@@ -56,7 +51,7 @@ contract FractionalContract is ERC1155, Ownable {
         uint256 platformFeeAmount = (cost * platformFee) / 10000;
         uint256 ownerAmount = cost - platformFeeAmount;
 
-        address payable owner = tokenOwners[tokenId];
+        address payable owner = payable(tokenOwners[tokenId]);
 
         sharesBalances[tokenId][owner] -= amount;
         sharesBalances[tokenId][msg.sender] += amount;

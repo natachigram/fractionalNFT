@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "./FractionalContract.sol";
 
-contract NFTMarketplace is Ownable {
+contract NFTMarketplace {
     struct Listing {
         uint256 tokenId;
         uint256 price;
@@ -32,7 +31,7 @@ contract NFTMarketplace is Ownable {
         fee = 0; // Initialize the fee to 0
     }
 
-    function setFee(uint256 _newFee) external onlyOwner {
+    function setFee(uint256 _newFee) external {
         require(_newFee >= 0, "NFTMarketplace: Negative fee not acceptable");
         fee = _newFee;
         emit FeeUpdated(_newFee);
@@ -43,7 +42,7 @@ contract NFTMarketplace is Ownable {
         uint256 _tokenId,
         uint256 _price,
         uint256 _numberOfShares
-    ) external onlyOwner {
+    ) external {
         require(_price > 0, "NFTMarketplace: Price must be greater than zero");
         require(
             _numberOfShares > 0,
@@ -63,10 +62,7 @@ contract NFTMarketplace is Ownable {
     }
 
     // Update the price of an existing listing.
-    function updatePrice(
-        uint256 _tokenId,
-        uint256 _newPrice
-    ) external onlyOwner {
+    function updatePrice(uint256 _tokenId, uint256 _newPrice) external {
         require(
             _newPrice > 0,
             "NFTMarketplace: Price must be greater than zero"
@@ -119,7 +115,7 @@ contract NFTMarketplace is Ownable {
     }
 
     // Unlist an NFT from the marketplace.
-    function unlistNFT(uint256 _tokenId) external onlyOwner {
+    function unlistNFT(uint256 _tokenId) external {
         Listing storage listing = listings[_tokenId];
         require(listing.tokenId != 0, "NFTMarketplace: Invalid token id");
         delete listings[_tokenId];
