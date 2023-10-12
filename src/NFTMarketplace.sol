@@ -7,6 +7,7 @@ contract NFTMarketplace {
         uint256 tokenId;
         uint256 price;
         uint256 numberOfShares;
+        address seller;
     }
 
     FractionalContract public fractionalContract; // Reference to the Fraktal1155 contract
@@ -49,7 +50,7 @@ contract NFTMarketplace {
             "NFTMarketplace: Number of shares must be greater than zero"
         );
         require(
-            fractionalContract.ownerOf(_tokenId) == address(this),
+            fractionalContract.tokenOwners(_tokenId) == address(this),
             "NFTMarketplace: Contract does not own the NFT"
         );
 
@@ -57,6 +58,7 @@ contract NFTMarketplace {
         listing.tokenId = _tokenId;
         listing.price = _price;
         listing.numberOfShares = _numberOfShares;
+        listing.seller = msg.sender;
 
         emit ItemListed(_tokenId, _price, _numberOfShares);
     }
@@ -105,8 +107,10 @@ contract NFTMarketplace {
         );
 
         // Transfer funds to the seller and platform
-        payable(owner()).transfer(platformFeeAmount);
-        payable(fractionalContract.ownerOf(_tokenId)).transfer(sellerAmount);
+        payable(listing.seller).transfer(platformFeeAmount);
+        payable(fractionalContract.tokenOwners(_tokenId)).transfer(
+            sellerAmount
+        );
 
         // Update the number of shares available in the listing
         listing.numberOfShares = listing.numberOfShares - _sharesToPurchase;
