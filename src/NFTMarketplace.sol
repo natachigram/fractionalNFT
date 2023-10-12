@@ -81,7 +81,7 @@ contract NFTMarketplace is Ownable {
     function purchaseShares(
         uint256 _tokenId,
         uint256 _sharesToPurchase
-    ) external payable nonReentrant {
+    ) external payable {
         Listing storage listing = listings[_tokenId];
         require(listing.tokenId != 0, "NFTMarketplace: Invalid token id");
         require(

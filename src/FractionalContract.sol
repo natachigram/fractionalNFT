@@ -4,13 +4,19 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Fraktal1155 is ERC1155, Ownable {
+contract FractionalContract is ERC1155, Ownable {
     uint256 public _tokenIds;
 
     uint256 public platformFee = 1; // 0.1%
 
     // Mapping to store the token shares owned by each address.
     mapping(uint256 => mapping(address => uint256)) public sharesBalances;
+
+    // Mapping to store the total supply of each token ID
+    mapping(uint256 => uint256) public tokenTotalSupply;
+
+    // Mapping to store the owner of each token ID
+    mapping(uint256 => address) public tokenOwners;
 
     event SharesPurchased(
         address indexed buyer,
@@ -26,23 +32,20 @@ contract Fraktal1155 is ERC1155, Ownable {
     );
     event Minted(uint256 tokenId, string uri);
 
-    constructor(string memory uri) ERC1155(uri) {
-        // Initialize your contract with a base URI
+    constructor(string memory uri) {
+        _setURI(uri);
     }
 
-    constructor() public {
-        mintingFee = 0;
-    }
-
-    function setURI(string memory newURI) external onlyOwner {
-        _setURI(newURI);
-    }
+    // function setURI(string memory newURI) external onlyOwner {
+    //     _setURI(newURI);
+    // }
 
     function mintNFT(string memory tokenURI) external onlyOwner {
         _tokenIds++;
         uint256 tokenId = _tokenIds;
         _mint(msg.sender, tokenId, 1, "");
         sharesBalances[tokenId][msg.sender] = 10000; // 100% shares to the owner
+        tokenOwners[tokenId] = msg.sender;
         emit Minted(tokenId, tokenURI);
     }
 
@@ -53,13 +56,13 @@ contract Fraktal1155 is ERC1155, Ownable {
         uint256 platformFeeAmount = (cost * platformFee) / 10000;
         uint256 ownerAmount = cost - platformFeeAmount;
 
-        address owner = ownerOf(tokenId);
+        address payable owner = tokenOwners[tokenId];
 
         sharesBalances[tokenId][owner] -= amount;
         sharesBalances[tokenId][msg.sender] += amount;
 
         owner.transfer(ownerAmount);
-        payable(owner()).transfer(platformFeeAmount);
+        payable(owner).transfer(platformFeeAmount);
 
         emit SharesPurchased(msg.sender, tokenId, amount, cost);
     }
@@ -90,7 +93,7 @@ contract Fraktal1155 is ERC1155, Ownable {
         uint256 tokenId
     ) public view returns (uint256) {
         return
-            (totalSupply(tokenId) * 1 ether) /
+            (tokenTotalSupply[tokenId] * 1 ether) /
             sharesBalances[tokenId][address(this)];
     }
 }
